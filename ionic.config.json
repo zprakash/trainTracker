@@ -1,0 +1,7 @@
+{
+  "name": "trainTracker",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
