@@ -8,7 +8,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { fetchTrainLocations } from "@/services/trainService";
 import { animateMarker } from "@/services/trainMarker";
-import imageUrl from '@assets/iocn.svg';
 
 export default defineComponent({
     name: "TrainMap",
@@ -30,13 +29,16 @@ export default defineComponent({
                     const endLng = latestLocation.location[0];
 
                     const trainName = `${train.trainType.name}${train.trainNumber}`;
-
                     const customIcon = L.divIcon({
-                         className: "custom-train-icon",
-                         html: `<div class="train-marker"><img src="${imageUrl}" alt="Train" /><span>${trainName}</span></div>`,
-                         iconSize: [180, 80],
-                         iconAnchor: [40, 40],
-                     });
+                        className: "custom-train-icon",
+                        html: `
+                            <div style="position: relative; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: gray; border: 2px solid green;">
+                                <span style="color: white; font-weight: bold; font-size: 12px;">${trainName}</span>
+                            </div>
+                        `,
+                        iconSize: [50, 50], 
+                        iconAnchor: [5, 5], 
+                    });
 
                     if (markerMap.has(train.trainNumber)) {
                         const marker = markerMap.get(train.trainNumber);
@@ -57,7 +59,7 @@ export default defineComponent({
         const fetchLoop = async () => {
             const trainLocations = await fetchTrainLocations();
             updateMap(trainLocations);
-            setTimeout(fetchLoop, 120000);
+            setTimeout(fetchLoop, 10000);
         };
 
         onMounted(async () => {
@@ -79,7 +81,7 @@ export default defineComponent({
                 map.value.invalidateSize();
             }, 10);
 
-            fetchLoop();
+          fetchLoop();
         });
 
         onUnmounted(() => {
