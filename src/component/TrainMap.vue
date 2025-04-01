@@ -7,7 +7,7 @@ import { defineComponent, onMounted, onUnmounted, ref, nextTick } from "vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { fetchTrainLocations } from "@/services/trainService";
-import { createTrainMarker, animateMarker } from "@/services/trainMarker";
+import { animateMarker } from "@/services/trainMarker";
 import imageUrl from '@assets/iocn.svg';
 
 export default defineComponent({
@@ -31,7 +31,12 @@ export default defineComponent({
 
                     const trainName = `${train.trainType.name}${train.trainNumber}`;
 
-                    const customIcon = createTrainMarker(trainName, imageUrl);
+                    const customIcon = L.divIcon({
+                         className: "custom-train-icon",
+                         html: `<div class="train-marker"><img src="${imageUrl}" alt="Train" /><span>${trainName}</span></div>`,
+                         iconSize: [180, 80],
+                         iconAnchor: [40, 40],
+                     });
 
                     if (markerMap.has(train.trainNumber)) {
                         const marker = markerMap.get(train.trainNumber);
