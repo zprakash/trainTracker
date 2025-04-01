@@ -19,7 +19,11 @@
     "@capacitor/status-bar": "7.0.0",
     "@ionic/vue": "^8.5.1",
     "@ionic/vue-router": "^8.5.1",
+    "@types/leaflet": "^1.9.17",
+    "@vueuse/core": "^13.0.0",
+    "axios": "^1.8.4",
     "ionicons": "^7.0.0",
+    "leaflet": "^1.9.4",
     "vue": "^3.3.0",
     "vue-router": "^4.2.0"
   },
