@@ -6,92 +6,21 @@
 import { defineComponent, onMounted, onUnmounted, ref, nextTick } from "vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { fetchTrainLocations } from "@/services/trainService";
+import { createTrainMarker, animateMarker } from "@/services/trainMarker";
 import imageUrl from '@assets/iocn.svg';
 
 export default defineComponent({
     name: "TrainMap",
     setup() {
         const map = ref(null);
-        const trainLocations = ref([]);
-        let markersLayer;
+        const markersLayer = ref(null);
         const markerMap = new Map();
-        let isFetching = false;
 
-        const fetchTrainLocations = async () => {
-            if (isFetching) return;
-            isFetching = true;
+        const updateMap = (trainLocations) => {
+            if (!map.value || !markersLayer.value) return;
 
-            const startTime = Date.now();
-            try {
-                const response = await fetch("https://rata.digitraffic.fi/api/v2/graphql/graphql", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept-Encoding": "gzip"
-                    },
-                    body: JSON.stringify({
-                        operationName: "runningTrains",
-                        variables: {},
-                        query: `
-                    fragment RunningTrain on Train {
-                        ...DigitrafficTrainInfo
-                        nextTimeTableRow: timeTableRows(
-                            where: {and: [{actualTime: {equals: null}}, {trainStopping: {equals: true}}, {cancelled: {equals: false}}]}
-                            take: 1
-                        ) {
-                            differenceInMinutes
-                            __typename
-                        }
-                        __typename
-                    }
-
-                    query runningTrains {
-                        currentlyRunningTrains(
-                            where: {and: [{trainType: {trainCategory: {or: [{name: {equals: "Commuter"}}, {name: {equals: "Long-distance"}}]}}}, {operator: {shortCode: {equals: "vr"}}}, {trainType: {name: {unequals: "MV"}}}, {trainType: {name: {unequals: "HV"}}}]}
-                        ) {
-                            ...RunningTrain
-                            __typename
-                        }
-                    }
-
-                    fragment DigitrafficTrainInfo on Train {
-                        trainNumber
-                        commuterLineId: commuterLineid
-                        departureDate
-                        trainType {
-                            name
-                            trainCategory {
-                                name
-                                __typename
-                            }
-                            __typename
-                        }
-                        trainLocations(orderBy: {timestamp: DESCENDING}, take: 2) {
-                            speed
-                            timestamp
-                            location
-                            __typename
-                        }
-                        __typename
-                    }
-                `
-                    })
-                });
-                const data = await response.json();
-                trainLocations.value = data.data.currentlyRunningTrains;
-                console.log(`API Response Time: ${Date.now() - startTime}ms`);
-                updateMap();
-            } catch (error) {
-                console.error("Error fetching train locations:", error);
-            } finally {
-                isFetching = false;
-            }
-        };
-
-        const updateMap = () => {
-            if (!map.value) return;
-
-            trainLocations.value.forEach((train) => {
+            trainLocations.forEach((train) => {
                 if (train.trainLocations?.length >= 2) {
                     const latestLocation = train.trainLocations[0];
                     const previousLocation = train.trainLocations[1];
@@ -102,12 +31,7 @@ export default defineComponent({
 
                     const trainName = `${train.trainType.name}${train.trainNumber}`;
 
-                    const customIcon = L.divIcon({
-                        className: "custom-train-icon",
-                        html: `<div class="train-marker"><img src="${imageUrl}" alt="Train" /><span>${trainName}</span></div>`,
-                        iconSize: [180, 80],
-                        iconAnchor: [40, 40],
-                    });
+                    const customIcon = createTrainMarker(trainName, imageUrl);
 
                     if (markerMap.has(train.trainNumber)) {
                         const marker = markerMap.get(train.trainNumber);
@@ -118,41 +42,25 @@ export default defineComponent({
                             .on("click", (e) => e.target.openPopup());
 
                         markerMap.set(train.trainNumber, marker);
-                        markersLayer.addLayer(marker);
+                        markersLayer.value.addLayer(marker);
                         animateMarker(marker, startLat, startLng, endLat, endLng);
                     }
                 }
             });
         };
 
-        const animateMarker = (marker, startLat, startLng, endLat, endLng) => {
-            let startTime;
-            const duration = 15000;
-
-            const step = (timestamp) => {
-                if (!startTime) startTime = timestamp;
-                const progress = Math.min((timestamp - startTime) / duration, 1);
-
-                const currentLat = startLat + (endLat - startLat) * progress;
-                const currentLng = startLng + (endLng - startLng) * progress;
-
-                marker.setLatLng([currentLat, currentLng]);
-                if (progress < 1) requestAnimationFrame(step);
-            };
-
-            requestAnimationFrame(step);
-        };
-
         const fetchLoop = async () => {
-            await fetchTrainLocations();
+            const trainLocations = await fetchTrainLocations();
+            updateMap(trainLocations);
             setTimeout(fetchLoop, 120000);
         };
 
         onMounted(async () => {
             await nextTick();
             map.value = L.map("map", {
-                center: [60.1695, 24.9354],
+                center: [64.9631, 25.7260],
                 zoom: 6,
+                minZoom: 6,
                 maxZoom: 16,
             });
 
@@ -160,7 +68,7 @@ export default defineComponent({
                 attribution: "&copy; OpenStreetMap contributors",
             }).addTo(map.value);
 
-            markersLayer = L.layerGroup().addTo(map.value);
+            markersLayer.value = L.layerGroup().addTo(map.value);
 
             setTimeout(() => {
                 map.value.invalidateSize();
@@ -184,11 +92,4 @@ export default defineComponent({
 #map {
     height: 100vh;
 }
-
-.custom-train-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 </style>
