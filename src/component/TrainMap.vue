@@ -1,17 +1,24 @@
 <template>
-    <div id="map-container">
-       <div id="map"></div>
-   </div>
+    <IonPage>
+        <IonContent class="ion-padding">
+            <div id="map-container">
+                <div id="map"></div>
+            </div>
+        </IonContent>
+    </IonPage>
 </template>
 
 <script>
 import { defineComponent, onMounted, onUnmounted, ref, nextTick } from "vue";
+import { IonContent, IonPage } from "@ionic/vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/leaflet.markercluster.js";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { fetchTrainLocations } from "@/services/trainService";
+
+import { createCustomTrainIcon, createCustomClusterIcon } from "@/utils/mapIcons";
 
 export default defineComponent({
    name: "TrainMap",
@@ -32,16 +39,7 @@ export default defineComponent({
                    const lng = latestLocation.location[0];
 
                    const trainName = `${train.trainType.name}${train.trainNumber}`;
-                   const customIcon = L.divIcon({
-                       className: "custom-train-icon",
-                       html: `
-                           <div style="position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: green; border: 2px solid blue;">
-                               <span style="color: white; font-weight: bold; font-size: 12px;">${trainName}</span>
-                           </div>
-                       `,
-                       iconSize: [50, 50], 
-                       iconAnchor: [25, 25], 
-                   });
+                   const customIcon = createCustomTrainIcon(trainName);
 
                    const marker = L.marker([lat, lng], { icon: customIcon })
                        .bindPopup(`<b>Train ${trainName}</b><br>Speed: ${latestLocation.speed} km/h`)
@@ -70,7 +68,9 @@ export default defineComponent({
                attribution: "&copy; OpenStreetMap contributors",
            }).addTo(map.value);
 
-           markersLayer.value = L.markerClusterGroup();
+           markersLayer.value = L.markerClusterGroup({
+                iconCreateFunction: createCustomClusterIcon,
+            });
            map.value.addLayer(markersLayer.value);
 
            setTimeout(() => {
@@ -81,7 +81,7 @@ export default defineComponent({
 
            fetchInterval = setInterval(() => {
                fetchLoop();
-           }, 15000);
+           }, 150000);
        });
 
        onUnmounted(() => {
