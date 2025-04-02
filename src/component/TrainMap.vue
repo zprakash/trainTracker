@@ -35,6 +35,7 @@ export default defineComponent({
        const markerMap = new Map();
        const selectedTrain = ref(null);
        const selectedMarker = ref(null);
+       const selectedTrainId = ref(null);
        let fetchInterval = null;
 
        const updateMap = (trainLocations) => {
@@ -48,19 +49,20 @@ export default defineComponent({
                    const lng = latestLocation.location[0];
 
                    const trainName = `${train.trainType.name}${train.trainNumber}`;
-                   const defaultIcon = createCustomTrainIcon(trainName);
-                   const highlightedIcon = createCustomTrainIcon(trainName, true);
+                   const isHighlighted = selectedTrainId.value === train.trainNumber; 
+                   const trainIcon = createCustomTrainIcon(trainName, isHighlighted);
 
-                   const marker = L.marker([lat, lng], { icon: defaultIcon  })
+                   const marker = L.marker([lat, lng], { icon: trainIcon  })
                        .on("click", () => {
                            selectedTrain.value = train;
+                           selectedTrainId.value = train.trainNumber;
 
                            if (selectedMarker.value) {
-                               selectedMarker.value.setIcon(createCustomTrainIcon(selectedTrain.value.trainType.name + selectedTrain.value.trainNumber));
+                               selectedMarker.value.setIcon(createCustomTrainIcon(selectedMarker.value.trainName));
                            }
 
                            selectedMarker.value = marker;
-                           marker.setIcon(highlightedIcon);
+                           marker.setIcon(createCustomTrainIcon(trainName, true));
 
 
                            if (map.value) {
@@ -72,6 +74,16 @@ export default defineComponent({
                        });
 
                    markersLayer.value.addLayer(marker);
+
+                   if (isHighlighted) {
+                       selectedMarker.value = marker; 
+                       marker.setIcon(createCustomTrainIcon(trainName, true));
+                       map.value.flyTo([lat, lng], map.value.getZoom(), {
+                           animate: true,
+                           duration: 1.5,
+                       });
+                   }
+
                }
            });
        };
@@ -105,9 +117,9 @@ export default defineComponent({
 
            fetchLoop();
 
-         //  fetchInterval = setInterval(() => {
-         //      fetchLoop();
-        //   }, 150000);
+         fetchInterval = setInterval(() => {
+               fetchLoop();
+          }, 15000);
        });
 
        onUnmounted(() => {
