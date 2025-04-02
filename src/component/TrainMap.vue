@@ -1,5 +1,7 @@
 <template>
-    <div id="map" style="height: 100vh;"></div>
+     <div id="map-container">
+        <div id="map"></div>
+    </div>
 </template>
 
 <script>
@@ -32,7 +34,7 @@ export default defineComponent({
                     const customIcon = L.divIcon({
                         className: "custom-train-icon",
                         html: `
-                            <div style="position: relative; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: gray; border: 2px solid green;">
+                            <div style="position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: green; border: 2px solid blue;">
                                 <span style="color: white; font-weight: bold; font-size: 12px;">${trainName}</span>
                             </div>
                         `,
@@ -59,7 +61,7 @@ export default defineComponent({
         const fetchLoop = async () => {
             const trainLocations = await fetchTrainLocations();
             updateMap(trainLocations);
-            setTimeout(fetchLoop, 10000);
+           // setTimeout(fetchLoop, 10000);
         };
 
         onMounted(async () => {
@@ -96,7 +98,15 @@ export default defineComponent({
 </script>
 
 <style scoped>
-#map {
+#map-container {
+    position: relative;
     height: 100vh;
 }
+
+#map {
+    height: 100%;
+    width: 100%;
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
 </style>
