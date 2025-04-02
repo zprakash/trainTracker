@@ -1,112 +1,112 @@
 <template>
-     <div id="map-container">
-        <div id="map"></div>
-    </div>
+    <div id="map-container">
+       <div id="map"></div>
+   </div>
 </template>
 
 <script>
 import { defineComponent, onMounted, onUnmounted, ref, nextTick } from "vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/leaflet.markercluster.js";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { fetchTrainLocations } from "@/services/trainService";
-import { animateMarker } from "@/services/trainMarker";
 
 export default defineComponent({
-    name: "TrainMap",
-    setup() {
-        const map = ref(null);
-        const markersLayer = ref(null);
-        const markerMap = new Map();
+   name: "TrainMap",
+   setup() {
+       const map = ref(null);
+       const markersLayer = ref(null);
+       const markerMap = new Map();
+       let fetchInterval = null;
 
-        const updateMap = (trainLocations) => {
-            if (!map.value || !markersLayer.value) return;
+       const updateMap = (trainLocations) => {
+           if (!map.value || !markersLayer.value) return;
+           markersLayer.value.clearLayers();
 
-            trainLocations.forEach((train) => {
-                if (train.trainLocations?.length >= 2) {
-                    const latestLocation = train.trainLocations[0];
-                    const previousLocation = train.trainLocations[1];
-                    const startLat = previousLocation.location[1];
-                    const startLng = previousLocation.location[0];
-                    const endLat = latestLocation.location[1];
-                    const endLng = latestLocation.location[0];
+           trainLocations.forEach((train) => {
+               if (train.trainLocations?.length >= 1) {
+                   const latestLocation = train.trainLocations[0];
+                   const lat = latestLocation.location[1];
+                   const lng = latestLocation.location[0];
 
-                    const trainName = `${train.trainType.name}${train.trainNumber}`;
-                    const customIcon = L.divIcon({
-                        className: "custom-train-icon",
-                        html: `
-                            <div style="position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: green; border: 2px solid blue;">
-                                <span style="color: white; font-weight: bold; font-size: 12px;">${trainName}</span>
-                            </div>
-                        `,
-                        iconSize: [50, 50], 
-                        iconAnchor: [5, 5], 
-                    });
+                   const trainName = `${train.trainType.name}${train.trainNumber}`;
+                   const customIcon = L.divIcon({
+                       className: "custom-train-icon",
+                       html: `
+                           <div style="position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: green; border: 2px solid blue;">
+                               <span style="color: white; font-weight: bold; font-size: 12px;">${trainName}</span>
+                           </div>
+                       `,
+                       iconSize: [50, 50], 
+                       iconAnchor: [25, 25], 
+                   });
 
-                    if (markerMap.has(train.trainNumber)) {
-                        const marker = markerMap.get(train.trainNumber);
-                        animateMarker(marker, startLat, startLng, endLat, endLng);
-                    } else {
-                        const marker = L.marker([startLat, startLng], { icon: customIcon })
-                            .bindPopup(`<b>Train ${trainName}</b><br>Speed: ${latestLocation.speed} km/h`)
-                            .on("click", (e) => e.target.openPopup());
+                   const marker = L.marker([lat, lng], { icon: customIcon })
+                       .bindPopup(`<b>Train ${trainName}</b><br>Speed: ${latestLocation.speed} km/h`)
+                       .on("click", (e) => e.target.openPopup());
 
-                        markerMap.set(train.trainNumber, marker);
-                        markersLayer.value.addLayer(marker);
-                        animateMarker(marker, startLat, startLng, endLat, endLng);
-                    }
-                }
-            });
-        };
+                   markersLayer.value.addLayer(marker);
+               }
+           });
+       };
 
-        const fetchLoop = async () => {
-            const trainLocations = await fetchTrainLocations();
-            updateMap(trainLocations);
-           // setTimeout(fetchLoop, 10000);
-        };
+       const fetchLoop = async () => {
+           const trainLocations = await fetchTrainLocations();
+           updateMap(trainLocations);
+       };
 
-        onMounted(async () => {
-            await nextTick();
-            map.value = L.map("map", {
-                center: [64.9631, 25.7260],
-                zoom: 6,
-                minZoom: 6,
-                maxZoom: 16,
-            });
+       onMounted(async () => {
+           await nextTick();
+           map.value = L.map("map", {
+               center: [64.9631, 25.7260],
+               zoom: 6,
+               minZoom: 6,
+               maxZoom: 16,
+           });
 
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; OpenStreetMap contributors",
-            }).addTo(map.value);
+           L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+               attribution: "&copy; OpenStreetMap contributors",
+           }).addTo(map.value);
 
-            markersLayer.value = L.layerGroup().addTo(map.value);
+           markersLayer.value = L.markerClusterGroup();
+           map.value.addLayer(markersLayer.value);
 
-            setTimeout(() => {
-                map.value.invalidateSize();
-            }, 10);
+           setTimeout(() => {
+               map.value.invalidateSize();
+           }, 10);
 
-          fetchLoop();
-        });
+           fetchLoop();
 
-        onUnmounted(() => {
-            if (map.value) {
-                map.value.remove();
-            }
-        });
+           fetchInterval = setInterval(() => {
+               fetchLoop();
+           }, 15000);
+       });
 
-        return { map };
-    },
+       onUnmounted(() => {
+           if (map.value) {
+               map.value.remove();
+           }
+           if (fetchInterval) {
+               clearInterval(fetchInterval);
+           }
+       });
+
+       return { map };
+   },
 });
 </script>
 
 <style scoped>
 #map-container {
-    position: relative;
-    height: 100vh;
+   position: relative;
+   height: 100vh;
 }
 
 #map {
-    height: 100%;
-    width: 100%;
-    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+   height: 100%;
+   width: 100%;
+   filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
-
 </style>
