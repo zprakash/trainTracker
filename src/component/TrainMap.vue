@@ -2,7 +2,7 @@
     <IonPage>
         <IonContent class="ion-padding">
             <div id="map-container">
-                <TrainInfoSidebar :selectedTrain="selectedTrain" @close="selectedTrain = null" />
+                <TrainInfo v-if="selectedTrain" :selectedTrain="selectedTrain" @close="selectedTrain = null" />
                 <div id="map"></div>
             </div>
         </IonContent>
@@ -18,16 +18,17 @@ import "leaflet.markercluster/dist/leaflet.markercluster.js";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { fetchTrainLocations } from "@/services/trainService";
+import { fetchTrainInfo } from "@/services/trainInfoService";
 
 import { createCustomTrainIcon, createCustomClusterIcon } from "@/utils/mapIcons";
-import TrainInfoSidebar from "@/component/TrainInfo.vue";
+import TrainInfo from "@/component/TrainInfo.vue";
 
 export default defineComponent({
    name: "TrainMap",
     components: {
          IonContent,
          IonPage,
-         TrainInfoSidebar,
+         TrainInfo,
     },
    setup() {
        const map = ref(null);
@@ -37,6 +38,12 @@ export default defineComponent({
        const selectedMarker = ref(null);
        const selectedTrainId = ref(null);
        let fetchInterval = null;
+
+       const fetchTrainDetails = async (trainNumber) => {
+           const today = new Date().toISOString().split("T")[0]; 
+           const trainInfo = await fetchTrainInfo(trainNumber, today);
+           selectedTrain.value = trainInfo[0]; 
+       };
 
        const updateMap = (trainLocations) => {
            if (!map.value || !markersLayer.value) return;
@@ -53,9 +60,12 @@ export default defineComponent({
                    const trainIcon = createCustomTrainIcon(trainName, isHighlighted);
 
                    const marker = L.marker([lat, lng], { icon: trainIcon  })
-                       .on("click", () => {
-                           selectedTrain.value = train;
-                           selectedTrainId.value = train.trainNumber;
+                       .on("click", async () => {
+                           
+                        selectedTrainId.value = train.trainNumber;
+                        console.log("Selected train ID:", selectedTrainId.value);
+                        console.log("Selected train number:", train.trainNumber);
+                        await fetchTrainDetails(train.trainNumber);
 
                            if (selectedMarker.value) {
                                selectedMarker.value.setIcon(createCustomTrainIcon(selectedMarker.value.trainName));
@@ -71,7 +81,7 @@ export default defineComponent({
                                    duration: 1.5,
                                });
                            }
-                       });
+                     });
 
                    markersLayer.value.addLayer(marker);
 
@@ -97,7 +107,7 @@ export default defineComponent({
            await nextTick();
            map.value = L.map("map", {
                center: [64.9631, 25.7260],
-               zoom: 6,
+               zoom: 4,
                minZoom: 6,
                maxZoom: 16,
            });
