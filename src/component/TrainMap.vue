@@ -2,6 +2,7 @@
     <IonPage>
         <IonContent class="ion-padding">
             <div id="map-container">
+                <TrainInfoSidebar :selectedTrain="selectedTrain" @close="selectedTrain = null" />
                 <div id="map"></div>
             </div>
         </IonContent>
@@ -19,13 +20,21 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { fetchTrainLocations } from "@/services/trainService";
 
 import { createCustomTrainIcon, createCustomClusterIcon } from "@/utils/mapIcons";
+import TrainInfoSidebar from "@/component/TrainInfo.vue";
 
 export default defineComponent({
    name: "TrainMap",
+    components: {
+         IonContent,
+         IonPage,
+         TrainInfoSidebar,
+    },
    setup() {
        const map = ref(null);
        const markersLayer = ref(null);
        const markerMap = new Map();
+       const selectedTrain = ref(null);
+       const selectedMarker = ref(null);
        let fetchInterval = null;
 
        const updateMap = (trainLocations) => {
@@ -39,11 +48,28 @@ export default defineComponent({
                    const lng = latestLocation.location[0];
 
                    const trainName = `${train.trainType.name}${train.trainNumber}`;
-                   const customIcon = createCustomTrainIcon(trainName);
+                   const defaultIcon = createCustomTrainIcon(trainName);
+                   const highlightedIcon = createCustomTrainIcon(trainName, true);
 
-                   const marker = L.marker([lat, lng], { icon: customIcon })
-                       .bindPopup(`<b>Train ${trainName}</b><br>Speed: ${latestLocation.speed} km/h`)
-                       .on("click", (e) => e.target.openPopup());
+                   const marker = L.marker([lat, lng], { icon: defaultIcon  })
+                       .on("click", () => {
+                           selectedTrain.value = train;
+
+                           if (selectedMarker.value) {
+                               selectedMarker.value.setIcon(createCustomTrainIcon(selectedTrain.value.trainType.name + selectedTrain.value.trainNumber));
+                           }
+
+                           selectedMarker.value = marker;
+                           marker.setIcon(highlightedIcon);
+
+
+                           if (map.value) {
+                               map.value.flyTo([lat, lng], 16, {
+                                   animate: true,
+                                   duration: 1.5,
+                               });
+                           }
+                       });
 
                    markersLayer.value.addLayer(marker);
                }
@@ -79,9 +105,9 @@ export default defineComponent({
 
            fetchLoop();
 
-           fetchInterval = setInterval(() => {
-               fetchLoop();
-           }, 150000);
+         //  fetchInterval = setInterval(() => {
+         //      fetchLoop();
+        //   }, 150000);
        });
 
        onUnmounted(() => {
@@ -93,7 +119,7 @@ export default defineComponent({
            }
        });
 
-       return { map };
+       return { map, selectedTrain };
    },
 });
 </script>
