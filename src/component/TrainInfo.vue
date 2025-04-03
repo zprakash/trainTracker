@@ -55,18 +55,22 @@
                                 <span v-if="stop.actualArrival && stop.actualDeparture">
                                     {{ new Date(stop.actualArrival).toLocaleTimeString([], {
                                         hour: '2-digit', minute:
-                                    '2-digit' }) }} (Arrival) -
+                                            '2-digit'
+                                    }) }} (Arrival) -
                                     {{ new Date(stop.actualDeparture).toLocaleTimeString([], {
                                         hour: '2-digit', minute:
-                                    '2-digit' }) }} (Departure)
+                                            '2-digit'
+                                    }) }} (Departure)
                                 </span>
                                 <span v-else>
                                     {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
                                         hour: '2-digit', minute:
-                                    '2-digit' }) }} (Scheduled Arrival) -
+                                            '2-digit'
+                                    }) }} (Scheduled Arrival) -
                                     {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
                                         hour: '2-digit',
-                                    minute: '2-digit' }) }} (Scheduled Departure)
+                                        minute: '2-digit'
+                                    }) }} (Scheduled Departure)
                                 </span>
                             </span>
 
@@ -74,12 +78,14 @@
                                 <span v-if="stop.actualArrival">
                                     {{ new Date(stop.actualArrival).toLocaleTimeString([], {
                                         hour: '2-digit', minute:
-                                    '2-digit' }) }} (Arrival)
+                                            '2-digit'
+                                    }) }} (Arrival)
                                 </span>
                                 <span v-else>
                                     {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
                                         hour: '2-digit', minute:
-                                    '2-digit' }) }} (Scheduled Arrival)
+                                            '2-digit'
+                                    }) }} (Scheduled Arrival)
                                 </span>
                             </span>
                         </p>
@@ -299,7 +305,6 @@ export default defineComponent({
 }
 
 .train-info-sidebar .train-stops .track {
-    font-size: 0.8rem;
-    color: #888;
+    font-size: 0.8rem;color: #888;
 }
 </style>
