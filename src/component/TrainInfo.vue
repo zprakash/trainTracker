@@ -38,70 +38,74 @@
                     <span class="on-time">on time {{ selectedTrain.timeTableRows[0]?.differenceInMinutes }}
                         min</span>
                 </p>
-            </div>
 
-            <div class="progress-and-stops-container">
-                <div class="progress-bar-container">
-                    <div class="progress-bar">
-                        <div :style="{ height: `${progressHeight}%` }" class="progress-indicator"></div>
-                        <div class="progress-circle" :style="{ top: `${progressHeight}%` }"></div>
+                <div v-for="(stop, index) in groupedStops" :key="'header-' + index">
+                    <div v-if="isNextStation(stop, index)" class="next-station-info">
+                        <span class="next-station-label">Next Station: </span>
+                        <span class="next-station-name">{{ stop.station.name }}</span>
                     </div>
                 </div>
-                <div class="train-stops">
-                    <div v-for="(stop, index) in groupedStops" :key="index" class="stop"
-                        :style="{ height: stopHeight }">
-                        <div class="stop-info">
-                            <p>{{ stop.station.name }}</p>
-                            <p>
-                                <span v-if="index === 0 && stop.scheduledDeparture">
-                                    {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
+
+            </div>
+
+            <div class="train-stops">
+                <div v-for="(stop, index) in groupedStops" :key="index" class="stop" :style="{ height: stopHeight }"
+                    :class="{
+                        'passed': hasArrived(stop, index),
+                        'next-station': isNextStation(stop, index)
+                    }">
+                    <div class="stop-info">
+                        <p>{{ stop.station.name }}</p>
+                        <p>
+                            <span v-if="index === 0 && stop.scheduledDeparture">
+                                {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
                                     hour: '2-digit', minute: '2-digit'
+                                }) }} (Departure)
+                            </span>
+
+                            <span v-if="index !== 0 && index !== groupedStops.length - 1">
+                                <span v-if="stop.actualArrival && stop.actualDeparture">
+                                    {{ new Date(stop.actualArrival).toLocaleTimeString([], {
+                                        hour: '2-digit', minute:
+                                            '2-digit'
+                                    }) }} (Arrival) -
+                                    {{ new Date(stop.actualDeparture).toLocaleTimeString([], {
+                                        hour: '2-digit', minute:
+                                            '2-digit'
                                     }) }} (Departure)
                                 </span>
-
-                                <span v-if="index !== 0 && index !== groupedStops.length - 1">
-                                    <span v-if="stop.actualArrival && stop.actualDeparture">
-                                        {{ new Date(stop.actualArrival).toLocaleTimeString([], {
+                                <span v-else>
+                                    {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
                                         hour: '2-digit', minute:
-                                        '2-digit'
-                                        }) }} (Arrival) -
-                                        {{ new Date(stop.actualDeparture).toLocaleTimeString([], {
-                                        hour: '2-digit', minute:
-                                        '2-digit'
-                                        }) }} (Departure)
-                                    </span>
-                                    <span v-else>
-                                        {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
-                                        hour: '2-digit', minute:
-                                        '2-digit'
-                                        }) }} (Scheduled Arrival) -
-                                        {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
+                                            '2-digit'
+                                    }) }} (Scheduled Arrival) -
+                                    {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
                                         hour: '2-digit',
                                         minute: '2-digit'
-                                        }) }} (Scheduled Departure)
-                                    </span>
+                                    }) }} (Scheduled Departure)
                                 </span>
+                            </span>
 
-                                <span v-if="index === groupedStops.length - 1">
-                                    <span v-if="stop.actualArrival">
-                                        {{ new Date(stop.actualArrival).toLocaleTimeString([], {
+                            <span v-if="index === groupedStops.length - 1">
+                                <span v-if="stop.actualArrival">
+                                    {{ new Date(stop.actualArrival).toLocaleTimeString([], {
                                         hour: '2-digit', minute:
-                                        '2-digit'
-                                        }) }} (Arrival)
-                                    </span>
-                                    <span v-else>
-                                        {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
-                                        hour: '2-digit', minute:
-                                        '2-digit'
-                                        }) }} (Scheduled Arrival)
-                                    </span>
+                                            '2-digit'
+                                    }) }} (Arrival)
                                 </span>
-                            </p>
-                        </div>
-                        <p class="track">Track {{ stop.commercialTrack || 'N/A' }}</p>
+                                <span v-else>
+                                    {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
+                                        hour: '2-digit', minute:
+                                            '2-digit'
+                                    }) }} (Scheduled Arrival)
+                                </span>
+                            </span>
+                        </p>
                     </div>
+                    <p class="track">Track {{ stop.commercialTrack || 'N/A' }}</p>
                 </div>
             </div>
+
         </IonContent>
     </div>
 </template>
@@ -146,18 +150,6 @@ export default defineComponent({
         stopHeight() {
             if (!this.groupedStops || this.groupedStops.length === 0) return 'auto';
             return `${100 / this.groupedStops.length}%`;
-        },
-
-        progressHeight() {
-            if (!this.selectedTrain || this.selectedTrain.timeTableRows.length === 0) return 0;
-
-            const currentTime = new Date().getTime();
-
-            const firstDepartureTime = new Date(this.selectedTrain.timeTableRows[0].scheduledTime).getTime();
-            const lastArrivalTime = new Date(this.selectedTrain.timeTableRows[this.selectedTrain.timeTableRows.length - 1].scheduledTime).getTime();
-            const totalDuration = lastArrivalTime - firstDepartureTime;
-            const progress = (currentTime - firstDepartureTime) / totalDuration * 100;
-            return Math.min(Math.max(progress, 0), 100);
         },
 
         groupedStops() {
@@ -208,6 +200,30 @@ export default defineComponent({
         }
     },
     methods: {
+
+        hasArrived(stop, index) {
+
+            if (index === 0) return true;
+
+            if (stop.actualArrival !== null) return true;
+
+            if (index < this.groupedStops.length - 1) {
+                const nextStop = this.groupedStops[index + 1];
+                if (nextStop.actualArrival !== null) return true;
+            }
+
+            return false;
+        },
+        isNextStation(stop, index) {
+            let lastArrivedIndex = -1;
+            for (let i = 0; i < this.groupedStops.length; i++) {
+                if (this.hasArrived(this.groupedStops[i])) {
+                    lastArrivedIndex = i;
+                }
+            }
+
+            return index === lastArrivedIndex + 1 && index < this.groupedStops.length - 1;
+        }
 
     },
     mounted() {
@@ -273,51 +289,14 @@ export default defineComponent({
     margin: 8px 0;
 }
 
-.progress-and-stops-container {
-    display: flex;
-    gap: 16px;  
-}
-
-.progress-bar {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    background-color: #e0e0e0;
-    border-radius: 5px;
-    margin-left: 10px;
-}
-
-.progress-indicator {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    background-color: #4CAF50;
-    border-radius: 5px;
-    transition: height 0.5s ease;
-}
-
-.progress-circle {
-    position: absolute;
-    left: 50%;
-    width: 16px;
-    height: 16px;
-    background-color: #4CAF50;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 2px solid white;
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
-    z-index: 2;
-    transition: top 0.5s ease;
-}
-
 .train-stops {
-    flex-grow: 1; 
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     padding: 10px;
     gap: 8px;
-    justify-content: space-between; 
-    height: 100%; 
+    justify-content: space-between;
+    height: 100%;
 }
 
 .stop {
@@ -330,6 +309,18 @@ export default defineComponent({
     border-radius: 8px;
     background: #2e2e2e;
     flex-shrink: 0;
+}
+
+.stop.passed {
+    border-left-color: #18891c;
+    border-left-width: 10px;
+    border-left-style: solid;
+}
+
+.stop.next-station {
+    border-left-color: #FFD700;
+    border-left-width: 10px;
+    border-left-style: solid;
 }
 
 .stop-info {
@@ -378,5 +369,21 @@ export default defineComponent({
 .train-info-sidebar .train-stops .track {
     font-size: 0.8rem;
     color: #888;
+}
+
+.next-station-info {
+    margin-top: 10px;
+
+    border-radius: 4px;
+}
+
+.next-station-label {
+    color: #FFD700;
+    font-weight: bold;
+}
+
+.next-station-name {
+    color: #FFD700;
+    font-weight: bold;
 }
 </style>

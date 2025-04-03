@@ -38,6 +38,7 @@ export default defineComponent({
        const selectedMarker = ref(null);
        const selectedTrainId = ref(null);
        let fetchInterval = null;
+       let fetchDetailsInterval = null;
 
        const fetchTrainDetails = async (trainNumber) => {
            const today = new Date().toISOString().split("T")[0]; 
@@ -103,6 +104,12 @@ export default defineComponent({
            updateMap(trainLocations);
        };
 
+       const fetchTrainDetailsPeriodically = async () => {
+           if (selectedTrainId.value) {
+               await fetchTrainDetails(selectedTrainId.value);
+           }
+       };
+
        onMounted(async () => {
            await nextTick();
            map.value = L.map("map", {
@@ -130,6 +137,11 @@ export default defineComponent({
          fetchInterval = setInterval(() => {
               fetchLoop();
          }, 15000);
+
+         fetchDetailsInterval = setInterval(() => {
+               fetchTrainDetailsPeriodically();
+           }, 60000); 
+           
        });
 
        onUnmounted(() => {
