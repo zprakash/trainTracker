@@ -128,8 +128,8 @@ export default defineComponent({
            fetchLoop();
 
          fetchInterval = setInterval(() => {
-               fetchLoop();
-          }, 15000);
+              fetchLoop();
+         }, 15000);
        });
 
        onUnmounted(() => {
