@@ -5,8 +5,13 @@
             <div id="map-container">
                 <TrainInfo v-if="selectedTrain" :selectedTrain="selectedTrain" @close="selectedTrain = null" />
                 <div class="search-bar-container">
-                    <input v-model="searchQuery" @keyup.enter="searchTrain" type="text"
-                        placeholder="Enter Train Number..." class="search-bar" />
+                    <ion-searchbar
+                        v-model="searchQuery"
+                        @keyup.enter="searchTrain"
+                        placeholder="Enter Train Number..."
+                        class="custom-search-bar"
+                        show-clear-button="always"
+                    ></ion-searchbar>
                 </div>
                 <div id="map"></div>
             </div>
@@ -16,7 +21,7 @@
 
 <script>
 import { defineComponent, onMounted, onUnmounted, ref, nextTick } from "vue";
-import { IonContent, IonPage } from "@ionic/vue";
+import { IonContent, IonPage, IonSearchbar } from "@ionic/vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/leaflet.markercluster.js";
@@ -36,7 +41,8 @@ export default defineComponent({
          IonContent,
          IonPage,
          TrainInfo,
-            NavBar,
+         NavBar,
+         IonSearchbar,
     },
    setup() {
        const map = ref(null);
@@ -94,12 +100,12 @@ export default defineComponent({
                selectedMarker.value = existingMarker;
                existingMarker.setIcon(createCustomTrainIcon(trainName, true));
 
-               map.value.flyTo([lat, lng], 16, {
+               map.value.flyTo([lat, lng], 16.5, {
                    animate: true,
                    duration: 1.5,
                });
            } else {
-               alert("Train exists but no marker found on the map yet.");
+               alert("Train not found!");
            }
        };
 
@@ -140,7 +146,7 @@ export default defineComponent({
 
 
                            if (map.value) {
-                               map.value.flyTo([lat, lng], 16, {
+                               map.value.flyTo([lat, lng], 16.5, {
                                    animate: true,
                                    duration: 1.5,
                                });
@@ -239,24 +245,30 @@ export default defineComponent({
     top: 20px;
     right: 30px;
     z-index: 999;
-    background-color: white;
-    border-radius: 20px;
-    padding: 5px 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    width: 300px;
+    background-color: transparent;
 }
 
-.search-bar {
-    border: none;
-    outline: none;
-    font-size: 16px;
-    padding: 8px 12px;
-    border-radius: 20px;
-    width: 200px;
-    transition: all 0.2s ease-in-out;
+.custom-search-bar {
+    --background: #ffffff; 
+    --color: #333333; 
+    --placeholder-color: #000000;
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    --border-radius: 20px; 
+    --padding-start: 15px;
+    --padding-end: 15px;
+    --height: 50px;
+    transition: all 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
-.search-bar:focus {
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+.custom-search-bar:hover {
+    --box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); 
+    --background: #f9f9f9; 
+}
+
+.custom-search-bar:focus-within {
+    --box-shadow: 0 0 10px 4px rgba(0, 123, 255, 0.5); 
+    --background: #ffffff; 
 }
 
 </style>
