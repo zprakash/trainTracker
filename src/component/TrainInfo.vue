@@ -18,21 +18,21 @@
                     </IonToolbar>
                 </IonHeader>
                 <div class="train-info-header">
-                    <div class="train-info-inputs">        
+                    <div class="train-info-inputs">     
                         <div class="input-box">
-                            <span>{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</span>
+                            <label class="input-label">Train Number </label>
+                            <span style="font-family: sans-serif; font-size: 1.4rem;">{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</span>
                         </div>
                         <div class="input-box">
-                            <span>{{ selectedTrain.departureDate }}</span>
+                            <label class="input-label">Date: </label>
+                            <span style="font-family: sans-serif; font-size: 1.4rem;">{{ selectedTrain.departureDate }}</span>
                         </div>
                     </div>
-
-                    <h2>{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</h2>
-                    <p class="route">From {{ selectedTrain.timeTableRows[0]?.station.name }} to {{
+                    <p class="route"> {{ selectedTrain.timeTableRows[0]?.station.name }} - {{
                         selectedTrain.timeTableRows[selectedTrain.timeTableRows.length - 1]?.station.name }}</p>
-                    <p>
+                    <p id="speed-info">
                         <strong>Speed:</strong> {{ selectedTrain.trainLocations[0]?.speed }} km/h,
-                        <span class="on-time">on time {{ selectedTrain.timeTableRows[0]?.differenceInMinutes }}
+                        <span class="on-time">On time {{ selectedTrain.timeTableRows[0]?.differenceInMinutes }}
                             min</span>
                     </p>
 
@@ -203,7 +203,9 @@ export default defineComponent({
 
         hasArrived(stop, index) {
 
-            if (index === 0) return true;
+            if (index === 0){
+                 return stop.actualDeparture !== null;
+            };
 
             if (stop.actualArrival !== null) return true;
 
@@ -265,7 +267,7 @@ ion-toolbar::part(container) {
 }
 
 .train-info-sidebar {
-    width: 500px;
+    width: 25%;
     background: #1e1e1e;
     color: white;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
@@ -296,28 +298,31 @@ ion-toolbar::part(container) {
     border-bottom: 1px solid #333;
 }
 
-.train-info-header h2 {
-    margin: 8px 0;
-    font-size: 1.5rem;
+.route {
+    font-size: 1.7rem;
+    color: #e7e2e2;
     font-weight: bold;
+    padding: 3px 0;
 }
 
-.train-info-header p {
-    margin: 4px 0;
-    font-size: 0.9rem;
-    color: #ccc;
+#speed-info{
+    margin: 10px 0;
+    font-size: 1.3rem;
+    color: #e7e2e2;
+    font-weight: bold;
+    padding: 3px 0;
 }
 
 .train-info-inputs {
     display: flex;
     gap: 8px;
     margin-bottom: 16px;
+    
 }
 
 .input-box {
     flex: 1;
-    padding: 8px;
-    border: 1px solid #444;
+    padding: 16px;
     border-radius: 4px;
     background: #2e2e2e;
     color: white;
@@ -325,10 +330,12 @@ ion-toolbar::part(container) {
     font-weight: bold;
 }
 
-.route {
+.input-label {
+    display: block;
+    font-size: 0.9rem; 
+    color: #e7e2e2;
+    margin-bottom: 4px;
     font-size: 1rem;
-    color: #ccc;
-    margin: 8px 0;
 }
 
 .train-stops {
@@ -369,12 +376,13 @@ ion-toolbar::part(container) {
 
 .stop-info p {
     margin: 0;
-    color: white;
+    color: #e7e2e2 !important;
+    font-size: 1.3rem !important;
 }
 
 .track {
-    font-size: 0.8rem;
-    color: #aaa;
+    font-size: 1rem !important;
+    color: #c5c2c2 !important;
 }
 
 .on-time {
@@ -411,17 +419,18 @@ ion-toolbar::part(container) {
 
 .next-station-info {
     margin-top: 10px;
-
     border-radius: 4px;
 }
 
 .next-station-label {
     color: #FFD700;
     font-weight: bold;
+    font-size: 1.3rem;
 }
 
 .next-station-name {
     color: #FFD700;
     font-weight: bold;
+    font-size: 1.3rem;
 }
 </style>
