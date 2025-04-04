@@ -4,6 +4,10 @@
         <IonContent class="ion-padding">
             <div id="map-container">
                 <TrainInfo v-if="selectedTrain" :selectedTrain="selectedTrain" @close="selectedTrain = null" />
+                <div class="search-bar-container">
+                    <input v-model="searchQuery" @keyup.enter="searchTrain" type="text"
+                        placeholder="Enter Train Number..." class="search-bar" />
+                </div>
                 <div id="map"></div>
             </div>
         </IonContent>
@@ -43,6 +47,61 @@ export default defineComponent({
        const selectedTrainId = ref(null);
        let fetchInterval = null;
        let fetchDetailsInterval = null;
+
+       const searchQuery = ref("");
+
+       const searchTrain = async () => {
+           const input = searchQuery.value.trim();
+           const trainNumber = parseInt(input, 10);
+
+           if (!trainNumber || isNaN(trainNumber)) {
+               alert("Please enter a valid train number.");
+               return;
+           }
+
+           const today = new Date().toISOString().split("T")[0];
+           const trainData = await fetchTrainInfo(trainNumber, today);
+
+           if (!trainData || trainData.length === 0) {
+               alert("Train not found. Recheck the id!!");
+               return;
+           }
+
+           const train = trainData[0];
+           selectedTrain.value = train;
+           selectedTrainId.value = train.trainNumber;
+
+           const trainName = `${train.trainType.name}${train.trainNumber}`;
+           const latestLocation = train.trainLocations?.[0];
+
+           if (!latestLocation) {
+               alert("No location data for this train");
+               return;
+           }
+
+           const lat = latestLocation.location[1];
+           const lng = latestLocation.location[0];
+
+           const existingMarker = markerMap.get(trainNumber);
+
+           if (existingMarker) {
+               if (selectedMarker.value) {
+                   selectedMarker.value.setIcon(
+                       createCustomTrainIcon(selectedMarker.value.trainName)
+                   );
+               }
+
+               selectedMarker.value = existingMarker;
+               existingMarker.setIcon(createCustomTrainIcon(trainName, true));
+
+               map.value.flyTo([lat, lng], 16, {
+                   animate: true,
+                   duration: 1.5,
+               });
+           } else {
+               alert("Train exists but no marker found on the map yet.");
+           }
+       };
 
        const fetchTrainDetails = async (trainNumber) => {
            const today = new Date().toISOString().split("T")[0]; 
@@ -88,6 +147,7 @@ export default defineComponent({
                            }
                      });
 
+                   markerMap.set(train.trainNumber, marker);
                    markersLayer.value.addLayer(marker);
 
                    if (isHighlighted) {
@@ -157,7 +217,7 @@ export default defineComponent({
            }
        });
 
-       return { map, selectedTrain };
+       return { map, selectedTrain, searchQuery, selectedTrainId, searchTrain };
    },
 });
 </script>
@@ -173,4 +233,30 @@ export default defineComponent({
    width: 100%;
    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
+
+.search-bar-container {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    z-index: 999;
+    background-color: white;
+    border-radius: 20px;
+    padding: 5px 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.search-bar {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    padding: 8px 12px;
+    border-radius: 20px;
+    width: 200px;
+    transition: all 0.2s ease-in-out;
+}
+
+.search-bar:focus {
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+}
+
 </style>
