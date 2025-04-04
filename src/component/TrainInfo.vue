@@ -1,119 +1,118 @@
 <template>
-    <div v-if="selectedTrain" class="train-info-sidebar">
-        <IonHeader>
-            <IonToolbar>
-                <IonButtons slot="start">
-                    <IonButton @click="$emit('close')" class="back-button">
-                        <IonIcon :icon="arrowBackOutline" />
-                        Back
-                    </IonButton>
-                </IonButtons>
-                <IonButtons slot="end">
-                    <IonButton @click="$emit('close')" class="close-button">
-                        <IonIcon :icon="closeOutline" />
-                    </IonButton>
-                </IonButtons>
-                <IonTitle>
-                    <div>The Live Train Map Service</div>
-                </IonTitle>
-            </IonToolbar>
-        </IonHeader>
+        <IonPage v-if="selectedTrain" class="train-info-sidebar">
+            <IonContent>
+                <IonHeader class="ion-no-border">
+                    <IonToolbar color="dark">
+                        <IonButtons slot="start">
+                            <IonButton @click="$emit('close')" class="back-button">
+                                <IonIcon :icon="arrowBackOutline" slot="icon-only" />
+                                Back
+                            </IonButton>
+                        </IonButtons>
+                        <div class="train-info-title">Train Info</div>
+                        <IonButtons slot="end">
+                            <IonButton @click="$emit('close')" class="close-button">
+                                <IonIcon :icon="closeOutline" slot="icon-only" />
+                            </IonButton>
+                        </IonButtons>
+                    </IonToolbar>
+                </IonHeader>
+                <div class="train-info-header">
+                    <div class="train-info-inputs">        
+                        <div class="input-box">
+                            <span>{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</span>
+                        </div>
+                        <div class="input-box">
+                            <span>{{ selectedTrain.departureDate }}</span>
+                        </div>
+                    </div>
 
-        <IonContent>
-            <div class="train-info-header">
-                <div class="train-info-inputs">
-                    <div class="input-box">
-                        <span>{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</span>
+                    <h2>{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</h2>
+                    <p class="route">From {{ selectedTrain.timeTableRows[0]?.station.name }} to {{
+                        selectedTrain.timeTableRows[selectedTrain.timeTableRows.length - 1]?.station.name }}</p>
+                    <p>
+                        <strong>Speed:</strong> {{ selectedTrain.trainLocations[0]?.speed }} km/h,
+                        <span class="on-time">on time {{ selectedTrain.timeTableRows[0]?.differenceInMinutes }}
+                            min</span>
+                    </p>
+
+                    <div v-for="(stop, index) in groupedStops" :key="'header-' + index">
+                        <div v-if="isNextStation(stop, index)" class="next-station-info">
+                            <span class="next-station-label">Next Station: </span>
+                            <span class="next-station-name">{{ stop.station.name }}</span>
+                        </div>
                     </div>
-                    <div class="input-box">
-                        <span>{{ selectedTrain.departureDate }}</span>
-                    </div>
+
                 </div>
 
-                <h2>{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</h2>
-                <p class="route">From {{ selectedTrain.timeTableRows[0]?.station.name }} to {{
-                    selectedTrain.timeTableRows[selectedTrain.timeTableRows.length - 1]?.station.name }}</p>
-                <p>
-                    <strong>Speed:</strong> {{ selectedTrain.trainLocations[0]?.speed }} km/h,
-                    <span class="on-time">on time {{ selectedTrain.timeTableRows[0]?.differenceInMinutes }}
-                        min</span>
-                </p>
-
-                <div v-for="(stop, index) in groupedStops" :key="'header-' + index">
-                    <div v-if="isNextStation(stop, index)" class="next-station-info">
-                        <span class="next-station-label">Next Station: </span>
-                        <span class="next-station-name">{{ stop.station.name }}</span>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="train-stops">
-                <div v-for="(stop, index) in groupedStops" :key="index" class="stop" :style="{ height: stopHeight }"
-                    :class="{
-                        'passed': hasArrived(stop, index),
-                        'next-station': isNextStation(stop, index)
-                    }">
-                    <div class="stop-info">
-                        <p>{{ stop.station.name }}</p>
-                        <p>
-                            <span v-if="index === 0 && stop.scheduledDeparture">
-                                {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
-                                    hour: '2-digit', minute: '2-digit'
-                                }) }} (Departure)
-                            </span>
-
-                            <span v-if="index !== 0 && index !== groupedStops.length - 1">
-                                <span v-if="stop.actualArrival && stop.actualDeparture">
-                                    {{ new Date(stop.actualArrival).toLocaleTimeString([], {
-                                        hour: '2-digit', minute:
-                                            '2-digit'
-                                    }) }} (Arrival) -
-                                    {{ new Date(stop.actualDeparture).toLocaleTimeString([], {
-                                        hour: '2-digit', minute:
-                                            '2-digit'
+                <div class="train-stops">
+                    <div v-for="(stop, index) in groupedStops" :key="index" class="stop" :style="{ height: stopHeight }"
+                        :class="{
+                            'passed': hasArrived(stop, index),
+                            'next-station': isNextStation(stop, index)
+                        }">
+                        <div class="stop-info">
+                            <p>{{ stop.station.name }}</p>
+                            <p>
+                                <span v-if="index === 0 && stop.scheduledDeparture">
+                                    {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
+                                        hour: '2-digit', minute: '2-digit'
                                     }) }} (Departure)
                                 </span>
-                                <span v-else>
-                                    {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
-                                        hour: '2-digit', minute:
-                                            '2-digit'
-                                    }) }} (Scheduled Arrival) -
-                                    {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    }) }} (Scheduled Departure)
-                                </span>
-                            </span>
 
-                            <span v-if="index === groupedStops.length - 1">
-                                <span v-if="stop.actualArrival">
-                                    {{ new Date(stop.actualArrival).toLocaleTimeString([], {
-                                        hour: '2-digit', minute:
-                                            '2-digit'
-                                    }) }} (Arrival)
+                                <span v-if="index !== 0 && index !== groupedStops.length - 1">
+                                    <span v-if="stop.actualArrival && stop.actualDeparture">
+                                        {{ new Date(stop.actualArrival).toLocaleTimeString([], {
+                                            hour: '2-digit', minute:
+                                                '2-digit'
+                                        }) }} (Arrival) -
+                                        {{ new Date(stop.actualDeparture).toLocaleTimeString([], {
+                                            hour: '2-digit', minute:
+                                                '2-digit'
+                                        }) }} (Departure)
+                                    </span>
+                                    <span v-else>
+                                        {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
+                                            hour: '2-digit', minute:
+                                                '2-digit'
+                                        }) }} (Scheduled Arrival) -
+                                        {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        }) }} (Scheduled Departure)
+                                    </span>
                                 </span>
-                                <span v-else>
-                                    {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
-                                        hour: '2-digit', minute:
-                                            '2-digit'
-                                    }) }} (Scheduled Arrival)
+
+                                <span v-if="index === groupedStops.length - 1">
+                                    <span v-if="stop.actualArrival">
+                                        {{ new Date(stop.actualArrival).toLocaleTimeString([], {
+                                            hour: '2-digit', minute:
+                                                '2-digit'
+                                        }) }} (Arrival)
+                                    </span>
+                                    <span v-else>
+                                        {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
+                                            hour: '2-digit', minute:
+                                                '2-digit'
+                                        }) }} (Scheduled Arrival)
+                                    </span>
                                 </span>
-                            </span>
-                        </p>
+                            </p>
+                        </div>
+                        <p class="track">Track {{ stop.commercialTrack || 'N/A' }}</p>
                     </div>
-                    <p class="track">Track {{ stop.commercialTrack || 'N/A' }}</p>
                 </div>
-            </div>
 
-        </IonContent>
-    </div>
+            </IonContent>
+        </IonPage>
+
 </template>
 
 
 <script>
 import { defineComponent } from "vue";
 import {
+    IonPage,
     IonContent,
     IonHeader,
     IonToolbar,
@@ -127,6 +126,7 @@ import { closeOutline, arrowBackOutline } from "ionicons/icons";
 export default defineComponent({
     name: "TrainInfoSidebar",
     components: {
+        IonPage,
         IonContent,
         IonHeader,
         IonToolbar,
@@ -233,6 +233,37 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
+ion-content {
+    --background: #1e1e1e;
+}
+
+ion-toolbar {
+    --padding-start: 16px; 
+    --padding-end: 16px; 
+    --min-height: 56px; 
+    border-bottom: 1px solid #333; 
+}
+
+ion-toolbar::part(container) {
+    position: relative; 
+    background: #1e1e1e;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.close-button {
+    color: white;
+    font-size: 1.2rem;
+}
+
 .train-info-sidebar {
     width: 500px;
     background: #1e1e1e;
@@ -246,10 +277,21 @@ export default defineComponent({
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    padding: 16px;
+    padding: 10px;
+    padding-top: 4.6rem;
 }
 
-.train-info-header {
+.train-info-title {
+    font-size: 1.5rem; 
+    font-weight: bold; 
+    color: white; 
+    text-align: center; 
+    font-family: "Roboto", sans-serif; 
+    margin: 0; 
+    padding: 0.5rem 0; 
+}
+
+.train-info-header  {
     padding: 20px;
     border-bottom: 1px solid #333;
 }

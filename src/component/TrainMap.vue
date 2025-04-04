@@ -1,5 +1,6 @@
 <template>
     <IonPage>
+        <NavBar />
         <IonContent class="ion-padding">
             <div id="map-container">
                 <TrainInfo v-if="selectedTrain" :selectedTrain="selectedTrain" @close="selectedTrain = null" />
@@ -20,6 +21,8 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { fetchTrainLocations } from "@/services/trainService";
 import { fetchTrainInfo } from "@/services/trainInfoService";
 
+import NavBar from "./NavBar.vue";
+
 import { createCustomTrainIcon, createCustomClusterIcon } from "@/utils/mapIcons";
 import TrainInfo from "@/component/TrainInfo.vue";
 
@@ -29,6 +32,7 @@ export default defineComponent({
          IonContent,
          IonPage,
          TrainInfo,
+            NavBar,
     },
    setup() {
        const map = ref(null);
@@ -130,7 +134,7 @@ export default defineComponent({
 
            setTimeout(() => {
                map.value.invalidateSize();
-           }, 10);
+           }, 20);
 
            fetchLoop();
 
