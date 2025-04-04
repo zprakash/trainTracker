@@ -183,7 +183,7 @@ export default defineComponent({
        onMounted(async () => {
            await nextTick();
            map.value = L.map("map", {
-               center: [64.9631, 25.7260],
+               center: [64.0000, 26.0000],
                zoom: 4,
                minZoom: 6,
                maxZoom: 16,
