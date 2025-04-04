@@ -3,15 +3,12 @@
         <NavBar />
         <IonContent class="ion-padding">
             <div id="map-container">
+                <WelcomePopup v-if="showWelcome" @close="showWelcome = false" />
+
                 <TrainInfo v-if="selectedTrain" :selectedTrain="selectedTrain" @close="selectedTrain = null" />
                 <div class="search-bar-container">
-                    <ion-searchbar
-                        v-model="searchQuery"
-                        @keyup.enter="searchTrain"
-                        placeholder="Enter Train Number..."
-                        class="custom-search-bar"
-                        show-clear-button="always"
-                    ></ion-searchbar>
+                    <ion-searchbar v-model="searchQuery" @keyup.enter="searchTrain" placeholder="Enter Train Number..."
+                        class="custom-search-bar" show-clear-button="always"></ion-searchbar>
                 </div>
                 <div id="map"></div>
             </div>
@@ -29,6 +26,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { fetchTrainLocations } from "@/services/trainService";
 import { fetchTrainInfo } from "@/services/trainInfoService";
+import WelcomePopup from "./WelcomePopup.vue";
 
 import NavBar from "./NavBar.vue";
 
@@ -43,6 +41,7 @@ export default defineComponent({
          TrainInfo,
          NavBar,
          IonSearchbar,
+         WelcomePopup 
     },
    setup() {
        const map = ref(null);
@@ -55,6 +54,7 @@ export default defineComponent({
        let fetchDetailsInterval = null;
 
        const searchQuery = ref("");
+       const showWelcome = ref(true);
 
        const searchTrain = async () => {
            const input = searchQuery.value.trim();
@@ -223,7 +223,7 @@ export default defineComponent({
            }
        });
 
-       return { map, selectedTrain, searchQuery, selectedTrainId, searchTrain };
+       return { map, selectedTrain, searchQuery, selectedTrainId, searchTrain, showWelcome };
    },
 });
 </script>
