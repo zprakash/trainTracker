@@ -290,25 +290,21 @@ export default defineComponent({
 }
 
 .train-stops {
-    flex-grow: 1;
     display: flex;
     flex-direction: column;
     padding: 10px;
     gap: 8px;
     justify-content: space-between;
-    height: 100%;
 }
 
 .stop {
-    min-height: 70px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px;
+    padding: 16px;
     border: 1px solid #444;
     border-radius: 8px;
     background: #2e2e2e;
-    flex-shrink: 0;
 }
 
 .stop.passed {
