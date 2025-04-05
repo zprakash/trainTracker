@@ -27,13 +27,20 @@
   }
   
   .navbar-title {
-    color: #ffffff; 
     font-family: "Roboto", sans-serif; 
     font-size: 1.5rem; 
     font-weight: bold;
     text-align: center;
   }
-  
+
+  .navbar-title.light {
+    color: white;
+  }
+
+  .navbar-title.dark {
+    color: black;
+  }
+
   .navbar-toolbar::after {
     content: "";
     display: block;
