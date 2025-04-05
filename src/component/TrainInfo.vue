@@ -32,7 +32,7 @@
                         selectedTrain.timeTableRows[selectedTrain.timeTableRows.length - 1]?.station.name }}</p>
                     <p id="speed-info">
                         <strong>Speed:</strong> {{ selectedTrain.trainLocations[0]?.speed }} km/h,
-                        <span class="{{ currentStation.differenceInMinutes >= 0 ? 'on-time' : 'late' }}">
+                        <span :class="currentStation.differenceInMinutes >= 0 ? 'on-time' : 'late'">
                          {{ currentStation.differenceInMinutes >= 0 ? 'On time' : 'Late' }}
                          {{ currentStation.differenceInMinutes }} min
                         </span>
