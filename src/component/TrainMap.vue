@@ -210,7 +210,7 @@ export default defineComponent({
 
          fetchDetailsInterval = setInterval(() => {
                fetchTrainDetailsPeriodically();
-           }, 60000); 
+           }, 45000); 
            
        });
 
