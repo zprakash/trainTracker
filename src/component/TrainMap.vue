@@ -1,7 +1,7 @@
 <template>
     <IonPage>
         <NavBar />
-        <IonContent class="ion-padding">
+        <IonContent>
             <div id="map-container">
                 <WelcomePopup v-if="showWelcome" @close="showWelcome = false" />
 
