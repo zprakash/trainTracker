@@ -18,7 +18,7 @@
                     </IonToolbar>
                 </IonHeader>
                 <div class="train-info-header">
-                    <div class="train-info-inputs">     
+                    <div class="train-info-inputs">
                         <div class="input-box">
                             <label class="input-label">Train Number </label>
                             <span style="font-family: sans-serif; font-size: 1.4rem;">{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</span>
@@ -32,85 +32,61 @@
                         selectedTrain.timeTableRows[selectedTrain.timeTableRows.length - 1]?.station.name }}</p>
                     <p id="speed-info">
                         <strong>Speed:</strong> {{ selectedTrain.trainLocations[0]?.speed }} km/h,
-                        <span class="on-time">On time {{ selectedTrain.timeTableRows[0]?.differenceInMinutes }}
-                            min</span>
+                        <span class="{{ currentStation.differenceInMinutes >= 0 ? 'on-time' : 'late' }}">
+                         {{ currentStation.differenceInMinutes >= 0 ? 'On time' : 'Late' }}
+                         {{ currentStation.differenceInMinutes }} min
+                        </span>
                     </p>
 
-                    <div v-for="(stop, index) in groupedStops" :key="'header-' + index">
-                        <div v-if="isNextStation(stop, index)" class="next-station-info">
-                            <span class="next-station-label">Next Station: </span>
-                            <span class="next-station-name">{{ stop.station.name }}</span>
-                        </div>
-                    </div>
-
+                <div v-if="nextStation" class="next-station-info">
+                    <span class="next-station-label">Next Station: </span>
+                    <span class="next-station-name">{{ nextStation.station.name }}</span>
                 </div>
+            </div>
 
-                <div class="train-stops">
-                    <div v-for="(stop, index) in groupedStops" :key="index" class="stop" :style="{ height: stopHeight }"
-                        :class="{
-                            'passed': hasArrived(stop, index),
-                            'next-station': isNextStation(stop, index)
-                        }">
-                        <div class="stop-info">
-                            <p>{{ stop.station.name }}</p>
-                            <p>
-                                <span v-if="index === 0 && stop.scheduledDeparture">
-                                    {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
-                                        hour: '2-digit', minute: '2-digit'
-                                    }) }} (Departure)
-                                </span>
+            <div class="train-stops">
+                <div v-for="(stop, index) in groupedStops" :key="index" class="stop" :style="{ height: stopHeight }"
+                    :class="{
+                        'passed': stop.hasArrived,
+                        'next-station': stop.isNextStation
+                    }">
+                    <div class="stop-info">
+                        <p>{{ stop.station.name }}</p>
+                        <p>
+                            <span v-if="index === 0 && stop.scheduledDeparture">
+                                {{ formatTime(stop.scheduledDeparture) }} (Departure)
+                            </span>
 
-                                <span v-if="index !== 0 && index !== groupedStops.length - 1">
-                                    <span v-if="stop.actualArrival && stop.actualDeparture">
-                                        {{ new Date(stop.actualArrival).toLocaleTimeString([], {
-                                            hour: '2-digit', minute:
-                                                '2-digit'
-                                        }) }} (Arrival) -
-                                        {{ new Date(stop.actualDeparture).toLocaleTimeString([], {
-                                            hour: '2-digit', minute:
-                                                '2-digit'
-                                        }) }} (Departure)
-                                    </span>
-                                    <span v-else>
-                                        {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
-                                            hour: '2-digit', minute:
-                                                '2-digit'
-                                        }) }} (Scheduled Arrival) -
-                                        {{ new Date(stop.scheduledDeparture).toLocaleTimeString([], {
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        }) }} (Scheduled Departure)
-                                    </span>
+                            <span v-if="index !== 0 && index !== groupedStops.length - 1">
+                                <span v-if="stop.actualArrival && stop.actualDeparture">
+                                    {{ formatTime(stop.actualArrival) }} (Arrival) -
+                                    {{ formatTime(stop.actualDeparture) }} (Departure)
                                 </span>
+                                <span v-else>
+                                    {{ formatTime(stop.scheduledArrival) }} (Scheduled Arrival) -
+                                    {{ formatTime(stop.scheduledDeparture) }} (Scheduled Departure)
+                                </span>
+                            </span>
 
-                                <span v-if="index === groupedStops.length - 1">
-                                    <span v-if="stop.actualArrival">
-                                        {{ new Date(stop.actualArrival).toLocaleTimeString([], {
-                                            hour: '2-digit', minute:
-                                                '2-digit'
-                                        }) }} (Arrival)
-                                    </span>
-                                    <span v-else>
-                                        {{ new Date(stop.scheduledArrival).toLocaleTimeString([], {
-                                            hour: '2-digit', minute:
-                                                '2-digit'
-                                        }) }} (Scheduled Arrival)
-                                    </span>
+                            <span v-if="index === groupedStops.length - 1">
+                                <span v-if="stop.actualArrival">
+                                    {{ formatTime(stop.actualArrival) }} (Arrival)
                                 </span>
-                            </p>
-                        </div>
-                        <p class="track">Track {{ stop.commercialTrack || 'N/A' }}</p>
+                                <span v-else>
+                                    {{ formatTime(stop.scheduledArrival) }} (Scheduled Arrival)
+                                </span>
+                            </span>
+                        </p>
                     </div>
+                    <p class="track">Track {{ stop.commercialTrack || 'N/A' }}</p>
                 </div>
-
-            </IonContent>
-        </IonPage>
-
+            </div>
+        </IonContent>
+    </IonPage>
 </template>
 
-
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, computed } from "vue";
 import {
     IonPage,
     IonContent,
@@ -142,7 +118,7 @@ export default defineComponent({
     emits: ["close"],
 
     setup(props) {
-        console.log("Selected train yyyysydsyd:", props.selectedTrain);
+        console.log("Selected train:", props.selectedTrain);
         return { closeOutline, arrowBackOutline };
     },
     computed: {
@@ -153,80 +129,92 @@ export default defineComponent({
         },
 
         groupedStops() {
+            if (!this.selectedTrain?.timeTableRows) return [];
+            
             const stops = [];
+            const rows = this.selectedTrain.timeTableRows;
+            const rowsLength = rows.length;
 
-            if (this.selectedTrain.timeTableRows[0]?.type === 'DEPARTURE') {
-                const firstStop = this.selectedTrain.timeTableRows[0];
+            if (rows[0]?.type === 'DEPARTURE') {
+                const firstStop = rows[0];
                 stops.push({
                     station: firstStop.station,
                     scheduledArrival: null,
                     actualArrival: null,
                     scheduledDeparture: firstStop.scheduledTime,
                     actualDeparture: firstStop.actualTime,
-                    commercialTrack: firstStop.commercialTrack
+                    differenceInMinutes: firstStop.differenceInMinutes,
+                    commercialTrack: firstStop.commercialTrack,
+                    hasArrived: firstStop.actualTime !== null,
+                    isNextStation: false,
+                    isLastPassed: false
                 });
             }
 
-            for (let i = 1; i < this.selectedTrain.timeTableRows.length - 1; i++) {
-                const row = this.selectedTrain.timeTableRows[i];
+            for (let i = 1; i < rowsLength - 1; i++) {
+                const row = rows[i];
+                const nextRow = rows[i + 1];
 
-                if (row.type === "ARRIVAL" && this.selectedTrain.timeTableRows[i + 1]?.type === "DEPARTURE") {
+                if (row.type === "ARRIVAL" && nextRow?.type === "DEPARTURE") {
                     stops.push({
                         station: row.station,
                         scheduledArrival: row.scheduledTime,
                         actualArrival: row.actualTime,
-                        scheduledDeparture: this.selectedTrain.timeTableRows[i + 1].scheduledTime,
-                        actualDeparture: this.selectedTrain.timeTableRows[i + 1].actualTime,
-                        commercialTrack: row.commercialTrack || this.selectedTrain.timeTableRows[i + 1].commercialTrack
+                        scheduledDeparture: nextRow.scheduledTime,
+                        actualDeparture: nextRow.actualTime,
+                        differenceInMinutes: nextRow.differenceInMinutes,
+                        commercialTrack: row.commercialTrack || nextRow.commercialTrack,
+                        hasArrived: row.actualTime !== null,
+                        isNextStation: false,
+                        isLastPassed: false
                     });
-                    i++;
+                    i++; 
                 }
             }
 
-            const lastStopIndex = this.selectedTrain.timeTableRows.length - 1;
-            const lastStop = this.selectedTrain.timeTableRows[lastStopIndex];
+            const lastStop = rows[rowsLength - 1];
             if (lastStop?.type === 'ARRIVAL') {
                 stops.push({
                     station: lastStop.station,
                     scheduledArrival: lastStop.scheduledTime,
                     actualArrival: lastStop.actualTime,
+                    differenceInMinutes: lastStop.differenceInMinutes,
                     scheduledDeparture: null,
                     actualDeparture: null,
-                    commercialTrack: lastStop.commercialTrack
+                    commercialTrack: lastStop.commercialTrack,
+                    hasArrived: lastStop.actualTime !== null,
+                    isNextStation: false,
+                    isLastPassed: false
                 });
             }
 
+            const nextStationIndex = stops.findIndex(stop => !stop.hasArrived);
+            if (nextStationIndex > 0) {
+                stops[nextStationIndex].isNextStation = true;
+                stops[nextStationIndex - 1].isLastPassed = true;
+            }
+
             return stops;
+        },
+
+        currentStation() {
+            const lastPassed = this.groupedStops.find(stop => stop.isLastPassed);
+            console.log("Current station:", lastPassed);
+            return lastPassed;
+        },
+
+        nextStation() {
+            const stationnext= this.groupedStops.find(stop => stop.isNextStation);
+            console.log("Next station:", stationnext);
+            return stationnext;
         }
     },
     methods: {
-
-        hasArrived(stop, index) {
-
-            if (index === 0){
-                 return stop.actualDeparture !== null;
-            };
-
-            if (stop.actualArrival !== null) return true;
-
-            if (index < this.groupedStops.length - 1) {
-                const nextStop = this.groupedStops[index + 1];
-                if (nextStop.actualArrival !== null) return true;
-            }
-
-            return false;
-        },
-        isNextStation(stop, index) {
-            let lastArrivedIndex = -1;
-            for (let i = 0; i < this.groupedStops.length; i++) {
-                if (this.hasArrived(this.groupedStops[i])) {
-                    lastArrivedIndex = i;
-                }
-            }
-
-            return index === lastArrivedIndex + 1 && index < this.groupedStops.length - 1;
+        formatTime(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
-
     },
     mounted() {
         console.log("Selected train mounted:", this.selectedTrain);
@@ -387,6 +375,11 @@ ion-toolbar::part(container) {
 
 .on-time {
     color: #4caf50;
+    font-weight: bold;
+}
+
+.late {
+    color: #FFD700;
     font-weight: bold;
 }
 
