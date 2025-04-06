@@ -34,14 +34,21 @@
 - NPM or Yarn
 - Git (for cloning the repo)
 
-### 1. Clone the Repository
+### 1. Install Ionic CLI Globally
+You must install the Ionic CLI if you haven't already:
+
+```bash
+npm install -g @ionic/cli
+```
+
+### 2. Clone the Repository
 
 ```bash
 git clone https://github.com/zprakash/trainTracker.git
 cd trainTracker
 ```
 
-### 2. Install Dependencies
+### 3. Install Dependencies
 
 ```bash
 npm install
@@ -49,7 +56,7 @@ npm install
 yarn install
 ```
 
-### 3. Run the Project
+### 4. Run the Project
 
 ```bash
 ionic serve
