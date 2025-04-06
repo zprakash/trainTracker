@@ -52,8 +52,6 @@ cd trainTracker
 
 ```bash
 npm install
-# or
-yarn install
 ```
 
 ### 4. Run the Project
