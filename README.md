@@ -30,7 +30,7 @@
 
 ### Prerequisites
 
-- Node.js >= 16
+- Node.js >= 22
 - NPM or Yarn
 - Git (for cloning the repo)
 
