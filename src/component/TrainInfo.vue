@@ -20,7 +20,7 @@
                 <div class="train-info-header">
                     <div class="train-info-inputs">
                         <div class="input-box">
-                            <label class="input-label">Train Number </label>
+                            <label class="input-label">Train Name and Number </label>
                             <span style="font-family: sans-serif; font-size: 1.4rem;">{{ selectedTrain.trainType.name }} {{ selectedTrain.trainNumber }}</span>
                         </div>
                         <div class="input-box">
