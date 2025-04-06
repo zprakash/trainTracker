@@ -255,7 +255,8 @@ ion-toolbar::part(container) {
 }
 
 .train-info-sidebar {
-    width: 25%;
+    width: 600px;
+    max-width: 600px;
     background: #1e1e1e;
     color: white;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
@@ -425,5 +426,106 @@ ion-toolbar::part(container) {
     color: #FFD700;
     font-weight: bold;
     font-size: 1.3rem;
+}
+
+@media (max-width: 1024px) {
+    .train-info-sidebar {
+        width: 390px;
+    }
+}
+
+@media (max-width: 768px) {
+    .train-info-sidebar {
+        width: 40%; 
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .train-info-title {
+        font-size: 1.2rem;
+    }
+
+    .train-info-header {
+        padding: 10px;
+    }
+
+    .route {
+        font-size: 1.2rem;
+    }
+
+    #speed-info {
+        font-size: 1rem;
+    }
+
+    .train-info-inputs {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .input-box {
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    .train-stops {
+        gap: 6px;
+    }
+
+    .stop {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+
+    .stop-info p {
+        font-size: 1rem !important;
+    }
+
+    .track {
+        font-size: 0.8rem !important;
+    }
+
+    .next-station-label,
+    .next-station-name {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .train-info-title {
+        font-size: 1rem;
+        display: flex;
+        margin-top: 4rem;
+    }
+
+    .route {
+        font-size: 1rem;
+    }
+
+    #speed-info {
+        font-size: 0.9rem;
+    }
+
+    .input-box {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    .stop {
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+
+    .stop-info p {
+        font-size: 0.9rem !important;
+    }
+
+    .track {
+        font-size: 0.7rem !important;
+    }
+
+    .next-station-label,
+    .next-station-name {
+        font-size: 0.9rem;
+    }
 }
 </style>
